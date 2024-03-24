@@ -5,6 +5,7 @@ if (!defined('WPINC')) die('No access outside of wordpress.');
 add_filter('woocommerce_checkout_fields', 'ffl_checkout_fields');
 function ffl_checkout_fields($fields)
 {
+
     // check to see if the candr override exists
     if (isset($_COOKIE["g_ffl_checkout_candr_override"])) {
         $candr_license_value = isset($_COOKIE["candr_license"]) ? $_COOKIE["candr_license"] : '';
@@ -16,66 +17,119 @@ function ffl_checkout_fields($fields)
         );
         return $fields;
     }
+
+    if ( all_items_are_firearms() ) {
+
+        // If the *entire order* is going to an FFL dealer, we will use the dealer's
+        // address as the basis for determining the appropriate shipping zone.
+        // Retain the WC shipping address fields, but set as hidden so we can 
+        // populate them with the FFL dealer's address (and not confuse the customer).
+
+        foreach( $fields['shipping'] as $key => $field ) {
+            $fields['shipping'][$key]['required'] = false;
+            $fields['shipping'][$key]['type'] = 'hidden';
+        }
+    }
+
     if (order_requires_ffl_selector()){
         return ffl_customize_checkout_fields($fields);   
-    }else{
-        return $fields;
     }
-}
-
-function ffl_customize_checkout_fields($fields)
-{
-    unset($fields['shipping']['shipping_address_2']);
-    
-    $fields['shipping']['shipping_company'] = array(
-        'type' => 'hidden',
-    );
-    $fields['shipping']['shipping_address_1'] = array(
-        'type' => 'hidden',
-    );
-    $fields['shipping']['shipping_city'] = array(
-        'type' => 'hidden',
-    );
-    /*
-    $fields['shipping']['shipping_state'] = array(
-        'type' => 'hidden',
-    );
-    $fields['shipping']['shipping_country'] = array(
-        'type' => 'hidden',
-    );
-    */
-    $fields['shipping']['shipping_postcode'] = array(
-        'type' => 'hidden',
-    );
-
-    $fields['shipping']['shipping_phone'] = array(
-        'type' => 'hidden',
-        'required' => false,
-    );
-
-    $fields['shipping']['shipping_email'] = array(
-        'type' => 'hidden',
-        'required' => false,
-    );
-
-    $fields['shipping']['shipping_fflno'] = array(
-        'type'          => 'hidden',
-        'required'      => true, 
-        );
-
-    $fields['shipping']['shipping_fflexp'] = array(
-        'type'          => 'hidden',
-        'required'      => true, 
-        );
-
-    $fields['shipping']['shipping_ffl_onfile'] = array(
-        'type'          => 'hidden',
-        'required'      => true, 
-        );
-
 
     return $fields;
 }
+
+
+
+
+
+
+
+
+/**
+ * Persist the FFL order metadata after the order has been placed.
+ */
+function ffl_checkout_update_order_meta($order_id)
+{
+    // if (isset($_COOKIE["g_ffl_checkout_candr_override"])) {
+    //     if (isset($_COOKIE["candr_license"])){
+        //         update_post_meta($order_id, '_candr_license', $_COOKIE["candr_license"]);
+    //         // Set the cookie to expire in the past (i.e., immediately expire)
+    //         setcookie('g_ffl_checkout_candr_override', '', time() - 3600, '/'); // Set the expiration time to a past timestamp
+    //         setcookie('candr_license', '', time() - 3600, '/'); // Set the expiration time to a past timestamp
+    
+    //         // Unset the cookie from the $_COOKIE superglobal (optional but recommended for immediate effect)
+    //         unset($_COOKIE['g_ffl_checkout_candr_override']);
+    //         unset($_COOKIE['candr_license']);
+    //     }
+    // }
+    
+    if (order_requires_ffl_selector()) {
+        update_post_meta($order_id, '_shipping_fflno', $_POST['_shipping_fflno']);
+        update_post_meta($order_id, '_shipping_fflexp', $_POST['_shipping_fflexp']);
+        update_post_meta($order_id, '_shipping_ffl_onfile', $_POST['_shipping_ffl_onfile']);
+        update_post_meta($order_id, '_shipping_fflcompany', $_POST['_shipping_fflcompany']);
+        update_post_meta($order_id, '_shipping_fflstreet', $_POST['_shipping_fflstreet']);
+        update_post_meta($order_id, '_shipping_fflcity', $_POST['_shipping_fflcity']);
+        update_post_meta($order_id, '_shipping_fflstate', $_POST['_shipping_fflstate']);
+        update_post_meta($order_id, '_shipping_fflzip', $_POST['_shipping_fflzip']);
+        update_post_meta($order_id, '_shipping_fflphone', $_POST['_shipping_fflphone']);
+        update_post_meta($order_id, '_shipping_ffl_cust_firstname', $_POST['_shipping_ffl_cust_firstname']);
+        update_post_meta($order_id, '_shipping_ffl_cust_lastname', $_POST['_shipping_ffl_cust_lastname']);
+    } 
+}
+add_action('woocommerce_checkout_update_order_meta', 'ffl_checkout_update_order_meta');
+
+
+/**
+ * Add custom fields, to receive dealer information on FFL dealer selection.
+ * 
+ * Associating with 'billing' has no particular purpose, other than ensuring 
+ * that the fields will always appear on the checkout page. The alternatives are 
+ * 'shipping' and 'order' fieldsets, but unlike billing, neither of these are 
+ * guaranteed to be available.
+ */
+function ffl_customize_checkout_fields( $fields )
+{
+    $fields['billing']['_shipping_fflcompany'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_fflstreet'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_fflcity'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_fflstate'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_fflzip'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_fflphone'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_fflemail'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_fflno'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_fflexp'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_ffl_onfile'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_ffl_cust_firstname'] = array(
+        'type' => 'hidden',
+    );
+    $fields['billing']['_shipping_ffl_cust_lastname'] = array(
+        'type' => 'hidden',
+    );
+
+    return $fields;
+}
+
 // Hook to add order metadata after checkout validation
 add_action('woocommerce_checkout_create_order', 'add_custom_order_metadata', 10, 2);
 function add_custom_order_metadata($order, $data) {
@@ -96,6 +150,7 @@ function add_custom_order_metadata($order, $data) {
 add_action('woocommerce_after_checkout_validation', 'ffl_checkout_validation', 10, 2);
 function ffl_checkout_validation($data, $errors)
 {
+
     // check to see if the candr override exists
     if (isset($_COOKIE["g_ffl_checkout_candr_override"])) {
         if (empty($data['candr_license'])) {
@@ -107,26 +162,25 @@ function ffl_checkout_validation($data, $errors)
 
     if (order_requires_ffl_selector()) {
 
-        if (empty($data['shipping_fflno'])) {
-            $errors->add('validation', "You must search or and select a FFL from the list. Enter a Zip Code near your FFL and click on Find FFL. If you selected a FFL ans still see this error, go to the My Account menu item and sign in first. Then try again.");
+        if (empty($data['_shipping_fflno'])) {
+            $errors->add('validation', '<strong>An FFL dealer</strong> must be selected.');
             return;
         }else{
             // set the favorite FFL cookie for this customer
-            setcookie('g_ffl_checkout_favorite_ffl', $data['shipping_fflno']);     
+            setcookie('g_ffl_checkout_favorite_ffl', $data['_shipping_fflno']);     
         }
 
-        if (empty($data['shipping_fflexp'])) {
+        if (empty($data['_shipping_fflexp'])) {
             $errors->add('validation', "FFL Expiration Data Required.");
             return;
         }
     }
 }
 
-use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
 add_action('add_meta_boxes', 'ffl_order_meta_box');
 function ffl_order_meta_box()
 {
-    $screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+    $screen = wc_get_container()->get( Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
     ? wc_get_page_screen_id( 'shop-order' )
     : 'shop_order';
 
@@ -140,7 +194,12 @@ function ffl_order_meta_box()
     );
 }
 
-add_action( 'wp_ajax_update_order_ffl', 'update_order_ffl' );
+/**
+ * Triggered on backend order update, Change FFL action
+ * 
+ * Note: works on wp admin backend, on Change FFL action it successfully updates
+ * the ffl meta data on the order.
+ */
 function update_order_ffl()
 {
     // Get the order object
@@ -173,36 +232,44 @@ function update_order_ffl()
     
     if (strlen($ffl['license_number']) == 20){
         // Update meta_data
-        $new_meta_data = array(
-            array('key' => '_shipping_email', 'value' => $ffl['email']),
-            array('key' => '_shipping_fflno', 'value' => $ffl['license_number']),
-            array('key' => '_shipping_fflexp', 'value' => $ffl['expiration_date']),
-            array('key' => '_shipping_ffl_onfile', 'value' => $ffl['ffl_on_file']?"Yes":"No"),
-            array('key' => 'is_vat_exempt', 'value' => 'no'),
-        );
+        // $new_meta_data = array(
+        //     array('key' => '_shipping_email', 'value' => $ffl['email']),
+        //     array('key' => '_shipping_fflno', 'value' => $ffl['license_number']),
+        //     array('key' => '_shipping_fflexp', 'value' => $ffl['expiration_date']),
+        //     array('key' => '_shipping_ffl_onfile', 'value' => $ffl['ffl_on_file']?"Yes":"No"),
+        //     array('key' => 'is_vat_exempt', 'value' => 'no'),
+        // );
         // Update the order's meta_data and shipping fields
-        $order->update_meta_data('_shipping_email', $ffl['email']);
+        $order->update_meta_data('_shipping_fflemail', $ffl['email']);
         $order->update_meta_data('_shipping_fflno', $ffl['license_number']);
         $order->update_meta_data('_shipping_fflexp', $ffl['expiration_date']);
         $order->update_meta_data('_shipping_ffl_onfile', $ffl['ffl_on_file']?"Yes":"No");
-        $order->update_meta_data('is_vat_exempt', 'no');
-        
+        // $order->update_meta_data('is_vat_exempt', 'no'); // this may interfere with non-FFL shipping; disabled
+        // FFL shipping is a special destination, apart from the customer's res/bus shipping address
+        $order->update_meta_data('_shipping_fflcompany', $ffl['list_name']);
+        $order->update_meta_data('_shipping_fflphone', $ffl['voice_phone']);
+        $order->update_meta_data('_shipping_fflstreet', $ffl['premise_street']);
+        $order->update_meta_data('_shipping_fflcity', $ffl['premise_city']);
+        $order->update_meta_data('_shipping_fflstate', $ffl['premise_state']);
+        $order->update_meta_data('_shipping_fflzip', $ffl['premise_zip_code']);
+        $order->update_meta_data('_shipping_ffl_cust_firstname', $order->get_shipping_first_name());
+        $order->update_meta_data('_shipping_ffl_cust_lastname', $order->get_shipping_last_name());
     
         // Update shipping fields
-        $shipping_address = array(
-            'first_name' => $order->get_shipping_first_name(),
-            'last_name'  => $order->get_shipping_last_name(),
-            'company'    => $ffl['list_name'],
-            'address_1'  => $ffl['premise_street'],
-            'address_2'  => '',
-            'city'       => $ffl['premise_city'],
-            'state'      => $ffl['premise_state'],
-            'postcode'   => $ffl['premise_zip_code'],
-            'country'    => 'US',
-            'phone'      => $ffl['voice_phone']
-        );
+        // $shipping_address = array(
+            // 'first_name' => $order->get_shipping_first_name(),
+            // 'last_name'  => $order->get_shipping_last_name(),
+            // 'company'    => $ffl['list_name'],
+            // 'address_1'  => $ffl['premise_street'],
+            // 'address_2'  => '',
+            // 'city'       => $ffl['premise_city'],
+            // 'state'      => $ffl['premise_state'],
+            // 'postcode'   => $ffl['premise_zip_code'],
+            // 'country'    => 'US',
+            // 'phone'      => $ffl['voice_phone']
+        // );
         
-        $order->set_shipping_address($shipping_address);
+        // $order->set_shipping_address($shipping_address);
     
         // Save the changes
         $order->save();
@@ -211,9 +278,13 @@ function update_order_ffl()
         echo 'The FFL License Number provided did not match a record in our ATF database. Please try again. If the error persists please contact support@garidium.com';
     }
     wp_die(); 
-
 }
+add_action( 'wp_ajax_update_order_ffl', 'update_order_ffl' );
 
+
+/**
+ * FFL Order Meta Box on the backend order page
+ */
 function ffl_order_meta_box_html($post_or_order_object)
 {
     $order = ( $post_or_order_object instanceof WP_Post ) ? wc_get_order( $post_or_order_object->ID ) : $post_or_order_object;
@@ -248,21 +319,25 @@ function ffl_order_meta_box_html($post_or_order_object)
         return;
     }
 
-    $ffl_name = $order->get_meta('_shipping_company', true);
+    $ffl_company = $order->get_meta('_shipping_fflcompany', true);
     $ffl_onfile = $order->get_meta('_shipping_ffl_onfile', true ) == 'Yes';
     $ffl_license = $order->get_meta('_shipping_fflno', true );
-    $ffl_phone = $order->get_meta('_shipping_phone', true );
+    $ffl_phone = $order->get_meta('_shipping_fflphone', true );
     $ffl_short = str_replace('-','',$ffl_license);  
     $ffl_short = substr($ffl_short, 0, 3) . substr($ffl_short, -5);
     $ffl_expiration = $order->get_meta('_shipping_fflexp', true);
-    $ffl_email = $order->get_meta('_shipping_email', true);
-    $ffl_customer = $order->get_meta('_shipping_first_name', true) . ' ' . $order->get_meta('_shipping_last_name', true);
+    $ffl_email = $order->get_meta('_shipping_fflemail', true);
+    $ffl_customer = $order->get_meta('_shipping_ffl_cust_firstname', true) . ' ' . $order->get_meta('_shipping_ffl_cust_lastname', true);
+    $ffl_street = $order->get_meta('_shipping_fflstreet', true);
+    $ffl_city = $order->get_meta('_shipping_fflcity', true);
+    $ffl_state = $order->get_meta('_shipping_fflstate', true);
+    $ffl_zip = $order->get_meta('_shipping_fflzip', true);
     
     $status = $order->get_status();
     
     if ($ffl_license == ""){
         if ($status == "auto-draft") {
-            echo 'You must create the order before adding a FFL';
+            echo 'You must create the order before adding an FFL';
         } else {
             echo '
             <table>
@@ -283,9 +358,23 @@ function ffl_order_meta_box_html($post_or_order_object)
             </table>';
         }
     } else {
+        $address = '';
+        if (isset($ffl_street) && !empty($ffl_street)) {
+            $address .= esc_attr($ffl_street) . ', ';
+        }
+        if (isset($ffl_city) && !empty($ffl_city)) {
+            $address .= esc_attr($ffl_city) . ', ';
+        }
+        if (isset($ffl_state) && !empty($ffl_state)) {
+            $address .= esc_attr($ffl_state) . ' ';
+        }
+        if (isset($ffl_zip) && !empty($ffl_zip)) {
+            $address .= esc_attr($ffl_zip);
+        }
         echo '
             <p>
-            <strong>Name:</strong> ' . esc_attr($ffl_name) . '<br>
+            <strong>Company Name:</strong> ' . esc_attr($ffl_company) . '<br>
+            <strong>Address:</strong> ' . esc_attr($address) . '<br>
             <strong>License Number:</strong> ' . esc_attr($ffl_license) . '<br>
             <strong>Expiration Date:</strong> ' . esc_attr($ffl_expiration) . '<br>
             ';
@@ -432,16 +521,26 @@ function ffl_order_meta_box_html($post_or_order_object)
             </script>';
 }
 
+/**
+ * Check if the order contains at least one firearm. 
+ * 
+ * This is determined by the Requires FFL Shipment checkbox, in the product data 
+ * config in the backend under the General tab.
+ */
 function order_requires_ffl_selector()
 {
+    static $contain_firearms = null;
+    if ( ! is_null( $contain_firearms ) ) {
+        return $contain_firearms;
+    }
     $contain_firearms = false;
     foreach (WC()->cart->get_cart() as $cart_item) {
-        $_product = wc_get_product($cart_item['data']->get_id());
-        if (isset($_product->get_data()['parent_id']) && $_product->get_data()['parent_id'] != 0) {
-            $_parent_product = wc_get_product($_product->get_data()['parent_id']);
+        $product = wc_get_product($cart_item['data']->get_id());
+        if (isset($product->get_data()['parent_id']) && $product->get_data()['parent_id'] != 0) {
+            $_parent_product = wc_get_product($product->get_data()['parent_id']);
             $firearm = $_parent_product->get_meta('_firearm_product');
         } else {
-            $firearm = $_product->get_meta('_firearm_product');
+            $firearm = $product->get_meta('_firearm_product');
         }
         if (isset($firearm)) {
             if ($firearm === 'yes') {
@@ -451,4 +550,53 @@ function order_requires_ffl_selector()
         }
     }
     return $contain_firearms;
+}
+
+/**
+ * Check if all items in the order are firearms.
+ * @return bool true if all items are firearms, false otherwise.
+ */
+function all_items_are_firearms( $order_id = null )
+{
+    $all_firearms = true;
+    if ( empty( $order_id ) ) {
+        $cart = WC()->cart->get_cart();
+        foreach ( $cart as $cart_item ) {
+            $product = wc_get_product( $cart_item['data']->get_id() );
+            // check both simple and variable products for the _firearm_product meta
+            if ( isset( $product->get_data()['parent_id']) && $product->get_data()['parent_id'] != 0 ) {
+                $_parent_product = wc_get_product( $product->get_data()['parent_id'] );
+                $firearm = $_parent_product->get_meta('_firearm_product');
+            } else {
+                $firearm = $product->get_meta('_firearm_product');
+            }
+            if (isset($firearm)) {
+                if ($firearm === 'no') {
+                    $all_firearms = false;
+                    break;
+                }
+            }
+        }
+        return $all_firearms;
+    } else {
+        $order = wc_get_order( $order_id );
+        $items = $order->get_items();
+        foreach ( $items as $item ) {
+            $product = $item->get_product();
+            // check both simple and variable products for the _firearm_product meta
+            if ( isset( $product->get_data()['parent_id']) && $product->get_data()['parent_id'] != 0 ) {
+                $_parent_product = wc_get_product( $product->get_data()['parent_id'] );
+                $firearm = $_parent_product->get_meta('_firearm_product');
+            } else {
+                $firearm = $product->get_meta('_firearm_product');
+            }
+            if (isset($firearm)) {
+                if ($firearm === 'no') {
+                    $all_firearms = false;
+                    break;
+                }
+            }
+        }
+        return $all_firearms;
+    }
 }

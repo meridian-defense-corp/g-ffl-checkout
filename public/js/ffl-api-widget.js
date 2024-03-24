@@ -748,17 +748,18 @@
             "Enter" !== t.key && "Enter" !== t.code || (N.click(), t.preventDefault(), t.stopPropagation())
         }), N.addEventListener("click", function(t) {
             localStorage.removeItem("selectedFFL");
-            //clear out shipping fields
-            setNativeValue(document.getElementById("shipping_country"), "US");
-            setNativeValue(document.getElementById("shipping_company"), "");
-            setNativeValue(document.getElementById("shipping_address_1"), "");
-            setNativeValue(document.getElementById("shipping_city"), "");
-            setNativeValue(document.getElementById("shipping_postcode"), "");
-            setNativeValue(document.getElementById("shipping_state"), "");
-            setNativeValue(document.getElementById("shipping_fflno"), "");
-            setNativeValue(document.getElementById("shipping_email"), "");
-            setNativeValue(document.getElementById("shipping_fflexp"), "");
-            setNativeValue(document.getElementById("shipping_ffl_onfile"), "");
+            //clear out previous ffl data
+            jQuery('input[name="_shipping_fflphone"]').val('');
+            jQuery('input[name="_shipping_fflcompany"]').val('');
+            jQuery('input[name="_shipping_fflstreet"]').val('');
+            jQuery('input[name="_shipping_fflcity"]').val('');
+            jQuery('input[name="_shipping_fflzip"]').val('');
+            jQuery('input[name="_shipping_fflstate"]').val('');
+            jQuery('input[name="_shipping_fflno"]').val('');
+            // jQuery('input[name="_shipping_email"]').val('');
+            jQuery('input[name="_shipping_fflemail"]').val('');
+            jQuery('input[name="_shipping_fflexp"]').val('');
+            jQuery('input[name="_shipping_ffl_onfile"]').val('');
         
             if (!searchByLicense){
                 if (5 !== v.value.length) return alert("Enter valid zip code!"), t.preventDefault(), !1;
@@ -2505,7 +2506,7 @@
                 text-align:center !important;
                 margin-bottom:2px !important;
             }
-            #ffl-list::-webkit-scrollbar-track {
+            /* #ffl-list::-webkit-scrollbar-track {
                 -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
                 border-radius: 10px;
                 background-color: #F5F5F5;
@@ -2518,7 +2519,7 @@
                 border-radius: 10px;
                 -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
                 background-color: #333;
-            }
+            } */
             #ffl-list div button {
                 line-height: 20px;
                 font-weight:normal;
@@ -2537,15 +2538,7 @@
                 margin-bottom: 0px;
                 width: 100%;
             }
-            .mapbox-attribution {
-                font-weight: normal !important;;
-                font-size: 8pt !important;;
-                color: gray !important;
-                padding: 0px !important;
-                margin-bottom: 5px;
-                float: right !important;
-                width: 100%;
-            }
+ 
             .ffl-map-resize {
                 width: 100%;
                 position: relative;
@@ -2557,165 +2550,6 @@
             #ffl_container {
                 background-color: #fff;
                 margin-top: 20px;
-            }
-            #ffl-zip-code {
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                box-shadow: inset 0 1px 1px #ebebeb;
-                border: 1px solid !important;
-                display: block;
-                -moz-osx-font-smoothing: grayscale;
-                -webkit-font-smoothing: antialiased;
-                font-smoothing: antialiased;
-                height: 45px;
-                margin: 0;
-                padding: 10px;
-                transition: all 100ms ease-out;
-                width: 100%;
-                -webkit-border-radius: 0px;
-                -moz-border-radius: 0px;
-                border-radius: 0px;
-            }
-            #ffl-name-search {
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                box-shadow: inset 0 1px 1px #ebebeb;
-                border: 1px solid !important;
-                display: block;
-                -moz-osx-font-smoothing: grayscale;
-                -webkit-font-smoothing: antialiased;
-                font-smoothing: antialiased;
-                height: 45px;
-                margin: 0;
-                padding: 10px;
-                transition: all 100ms ease-out;
-                width: 100%;
-                -webkit-border-radius: 0px;
-                -moz-border-radius: 0px;
-                border-radius: 0px;
-            }
-            #ffl-radius {
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                box-shadow: inset 0 1px 1px #ebebeb;
-                border: 1px solid !important;
-                display: block;
-                -moz-osx-font-smoothing: grayscale;
-                -webkit-font-smoothing: antialiased;
-                font-smoothing: antialiased;
-                height: 45px;
-                margin: 0;
-                padding: 10px !important;
-                transition: all 100ms ease-out;
-                width: 100%;
-                -webkit-border-radius: 0px;
-                -moz-border-radius: 0px;
-                border-radius: 0px;
-            }
-            #ffl-search {
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                box-shadow: inset 0 1px 1px #ebebeb;
-                border: 1px solid !important;
-                display: block;
-                -moz-osx-font-smoothing: grayscale;
-                -webkit-font-smoothing: antialiased;
-                font-smoothing: antialiased;
-                height: 45px;
-                margin: 0;
-                transition: all 100ms ease-out;
-                width: 100%;
-                -webkit-border-radius: 0px;
-                -moz-border-radius: 0px;
-                border-radius: 0px;
-                cursor: pointer;
-                width: 100%;
-                border-radius: 5px;
-                outline: none;
-                background-color: #2f2727 !important;
-                color:#EEEEEE !important;
-                font-weight:bold !important;
-                text-align:center !important;
-            }
-            #ffl-favorite-search{
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                box-shadow: inset 0 1px 1px #ebebeb;
-                border: 1px solid !important;
-                display: block;
-                -moz-osx-font-smoothing: grayscale;
-                -webkit-font-smoothing: antialiased;
-                font-smoothing: antialiased;
-                height: 45px;
-                margin: 0;
-                transition: all 100ms ease-out;
-                -webkit-border-radius: 0px;
-                -moz-border-radius: 0px;
-                border-radius: 0px;
-                cursor: pointer;
-                width: 100%;
-                border-radius: 5px;
-                outline: none;
-                background-color: #2f2727 !important;
-                color:#EEEEEE !important;
-                font-weight:bold !important;
-                text-align:center !important;
-            }
-            #ffl-candr-override{
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                box-shadow: inset 0 1px 1px #ebebeb;
-                border: 1px solid !important;
-                display: block;
-                -moz-osx-font-smoothing: grayscale;
-                -webkit-font-smoothing: antialiased;
-                font-smoothing: antialiased;
-                height: 45px;
-                margin: 0;
-                transition: all 100ms ease-out;
-                width: 50%;
-                -webkit-border-radius: 0px;
-                -moz-border-radius: 0px;
-                border-radius: 0px;
-                cursor: pointer;
-                width: 100%;
-                border-radius: 5px;
-                outline: none;
-                background-color: #2f2727 !important;
-                color:#EEEEEE !important;
-                font-weight:bold !important;
-                text-align:center !important;
-            }
-            #ffl-local-pickup-search{
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                box-shadow: inset 0 1px 1px #ebebeb;
-                border: 1px solid !important;
-                display: block;
-                -moz-osx-font-smoothing: grayscale;
-                -webkit-font-smoothing: antialiased;
-                font-smoothing: antialiased;
-                height: 45px;
-                margin: 0;
-                transition: all 100ms ease-out;
-                -webkit-border-radius: 0px;
-                -moz-border-radius: 0px;
-                border-radius: 0px;
-                cursor: pointer;
-                width: 100%;
-                border-radius: 5px;
-                outline: none;
-                background-color: #2f2727 !important;
-                color:#EEEEEE !important;
-                font-weight:bold !important;
-                text-align:center !important;
             }
             .selectedFFLDivButton {
                 border:solid #ba102d 1px !important;
@@ -2746,12 +2580,7 @@
                 border-radius: 4px;
             }
             /* Last Update */
-            .ffl_checkout_columns {
-                display: flex;
-                justify-content: center;
-                //align-items: baseline;
-                padding-bottom: 5px !important;
-            }
+            
             .ffl_checkout_column {
                 flex: 1;
                 margin: 2px;
@@ -2803,61 +2632,58 @@
                 pointer-events: none;
             }
         </style>
-        <div class="content">
-            <h3 class="ffl-dealer-heading">Select your preferred FFL Dealer</h3>
-            <p style="margin-bottom:10px !important;" class="notice">
-                <span class="ffl_checkout_notice">
-                    <b>Federal law dictates that your online firearms purchase must be delivered to a 
-                    federally licensed firearms dealer (FFL) before you can take possession</b>. This 
-                    process is called a Transfer. Enter your zip code, radius, and FFL name (optional), 
-                    then click the Find button to get a list of FFL dealers in your area.
-                    Select the FFL dealer you want the firearm shipped to. <b><u>Before Checking Out, 
-                    Contact your selected FFL dealer to confirm they are currently accepting transfers</u>. 
-                    You can also confirm transfer costs.</b>.
-                </span>
-            </p>
+        <form class="content" id="ffl_api_widget_form" action="">
+            <h3>FFL Dealer <small style="margin-left:10px;"><a href="#" data-fancybox data-src="#hidden-content">What's this?</a></small></h3>
+            
+            <div id="hidden-content" style="display:none;max-width:700px;">
+                <p>Your online firearms purchase must be delivered to a federally licensed firearms dealer (FFL) before you can take possession. This process is called a Transfer. Enter your zip code, radius, and FFL name (optional), then click the Find button to get a list of FFL dealers in your area. Select the FFL dealer you want the firearm shipped to. Before checking out, contact your selected FFL dealer to confirm they are currently accepting transfers. You can also confirm transfer costs. If we do not have the FFL on-file, ask them to send a signed copy to sales@garidium.com.</p>
+                <p>In addition, you will need to enter your first and last name exactly as it appears on your government issued ID. Your FFL vendor will receive this information. Your ID will be required for pickup.</p>
+            </div>
             <div>
                 <div id="ffl-candr-section" style="margin-bottom:20px;padding:5px;border:solid 2px;background:#EEEEEE;">
                     <div class="ffl_checkout_columns">
                         <div class="ffl_checkout_column" style="text-align:left;color:black;">
                             Have a C&R?
                         </div>
-                        <div class="ffl_checkout_column" style="width:100%;text-align:right;font-style:italic;">
+                        <div class="ffl_checkout_column" style="text-align:right;font-style:italic;">
                             Upload your C&R
                         </div>
                     </div>
                     <div class="ffl_checkout_columns" id="ffl-candr-section" style="padding:5px;border:solid 2px;background-color:white;">
                         <div class="ffl_checkout_column" id="candr_upload_section">
                             <input type="file" id="candr_upload_filename" style="display:none;" onchange="document.getElementById('candrUploadLable').textContent = this.files[0].name.substring(0,15);">
-                            <label style="width:100%;" id="candrUploadLable" for="candr_upload_filename" class="button alt">SELECT C&R</label>
+                            <label id="candrUploadLable" for="candr_upload_filename" class="button alt">SELECT C&R</label>
                         </div>
                         <div class="ffl_checkout_column">
-                            <input style="width:100%;" autocomplete="off" type="text" id="candr_license_number" placeholder="Enter Full C&R License#" class="" value="">
+                            <input autocomplete="off" class="input-text" type="text" id="candr_license_number" placeholder="Enter Full C&R License#" class="" value="">
                         </div>
                         <div class="ffl_checkout_column">
-                            <input style="width:100%;" readonly id="ffl-candr-override" placeholder="" value="UPLOAD">
+                            <input readonly id="ffl-candr-override" placeholder="" value="UPLOAD">
                         </div>
                     </div>
                 </div>
                 
                 <div id="ffl-local-pickup-section" style="display:none;">
                     <div>
-                        <input readonly id="ffl-local-pickup-search" placeholder="" value="IN STORE PICKUP">
+                        <button class="button alt" id="ffl-local-pickup-search" value="IN STORE PICKUP">In-store pickup</button>
                     </div>
                 </div>
                 <div id="ffl-favorite-section" style="display:none;">
                     <div>
-                        <input readonly id="ffl-favorite-search" placeholder="" value="FIND THE LAST FFL YOU USED">
+                        <button class="button alt" id="ffl-favorite-search" value="FIND THE LAST FFL YOU USED">Find the last FFL you used</button>
                     </div>
                 </div>
             </div>
             <div id="ffl_search_fields">
                 <div class="ffl_checkout_columns">
                     <div class="ffl_checkout_column">
-                        <input autocomplete="off" type="text" id="ffl-zip-code" placeholder="Zip Code" value="">
+                        <label for="ffl-zip-code">Zip Code</label>
+                        <input autocomplete="off" class="input-text" type="text" id="ffl-zip-code" value="">
                     </div>
                     <div class="ffl_checkout_column">
-                        <select id="ffl-radius">
+                        <label for="ffl-radius">Radius</label>
+                        <!-- <select name="billing_country" id="billing_country" class="country_to_state country_select " autocomplete="country" data-placeholder="Select a country / region&hellip;" data-label="Country / Region"> -->
+                        <select name="ffl-radius" id="ffl-radius">
                             <option value="5" selected="">within 5 Miles</option>
                             <option value="10">Within 10 Miles</option>
                             <option value="25">Within 25 Miles</option>
@@ -2865,32 +2691,55 @@
                         </select>
                     </div>
                     <div class="ffl_checkout_column">
-                        <input readonly id="ffl-search" placeholder="FIND FFL" value="FIND FFL">
+                        <button class="button alt" id="ffl-search" name="Search" value="Search">Search</button>
                     </div>
                 </div>
                 <div class="ffl_checkout_columns">
                     <div class="ffl_checkout_column">
-                        <input autocomplete="off" type="text" id="ffl-name-search" placeholder="FFL Name (optional)">
+                        <label for="ffl-name-search">Filter results by dealer name (optional)</label>
+                        <input autocomplete="off" class="input-text" type="text" id="ffl-name-search">
                     </div>
                 </div>
             </div>
+            <div id="ffl-click-instructions" class="ffl-hide">Click on FFL to Confirm the Pickup Location</div>
+            <div class="ffl-list-container">
+                <ul id="ffl-list" class="ffl-hide"></ul>
+                <!-- @todo hide this ugly spinner, use a spinner inside the FIND FFL button -->
+                <div id="floatingBarsG" style="display:none;">
+                    <div class="blockG" id="rotateG_01"></div>
+                    <div class="blockG" id="rotateG_02"></div>
+                    <div class="blockG" id="rotateG_03"></div>
+                    <div class="blockG" id="rotateG_04"></div>
+                    <div class="blockG" id="rotateG_05"></div>
+                    <div class="blockG" id="rotateG_06"></div>
+                    <div class="blockG" id="rotateG_07"></div>
+                    <div class="blockG" id="rotateG_08"></div>
+                </div>
+            </div>
+
+            <div id="ffl-wc-first-name"></div>
+            <div id="ffl-wc-last-name"></div>
+
+            <div class="ffl-map-wrapper" id="md-ffl-map">
+            <div id="ffl-map" class="ffl-map-resize"></div>
+            <div id="mapbox-attribution-line" class="mapbox-attribution">&copy; <a target=_blank href='https://www.mapbox.com/about/maps/'>Mapbox</a> &copy; <a target=_blank href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> &copy; <a target=_blank href='http://www.maxar.com'>Maxar</a><strong> | <a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong></div>
         </div>
-        <div id="ffl-click-instructions" class="ffl-hide">Click on FFL to Confirm the Pickup Location</div>
-        <div class="ffl-list-container">
-            <ul id="ffl-list" class="ffl-hide"></ul>
-            <div id="floatingBarsG" style="display:none;">
-                <div class="blockG" id="rotateG_01"></div>
-                <div class="blockG" id="rotateG_02"></div>
-                <div class="blockG" id="rotateG_03"></div>
-                <div class="blockG" id="rotateG_04"></div>
-                <div class="blockG" id="rotateG_05"></div>
-                <div class="blockG" id="rotateG_06"></div>
-                <div class="blockG" id="rotateG_07"></div>
-                <div class="blockG" id="rotateG_08"></div>
+        <div id="ffl_search_fields" class="md_first_last_name">
+            <div class="ffl_checkout_columns">
+                <div class="ffl_checkout_column">
+                    <label for="_shipping_ffl_cust_firstname">First Name</label>
+                    <input name="_shipping_ffl_cust_firstname" id="_shipping_ffl_cust_firstname" type="text" aria-describedby="ffl-cust-name-desc" class="input-text" value="">
+                </div>
+                <div class="ffl_checkout_column">
+                    <label for="_shipping_ffl_cust_lastname">Last Name</label>
+                    <input name="_shipping_ffl_cust_lastname" id="_shipping_ffl_cust_lastname" type="text" aria-describedby="ffl-cust-name-desc" class="input-text" value="">
+                </div>
+            </div>
+            <div class="input-description" id="ffl-cust-name-desc">
+                Enter your first and last name exactly as it appears on your government issued ID.
             </div>
         </div>
-        <div id="ffl-map" class="ffl-map-resize"></div>
-        <span id="mapbox-attribution-line" class="mapbox-attribution">© <a style="color:gray !important;" target=_blank href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a style="color:gray !important;" target=_blank href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> © <a style="color:gray !important;" target=_blank href='http://www.maxar.com'>Maxar</a><strong> | <a style="color:gray !important;" href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong></span><br>
+    </form>
         `;
     t.exports = ht
 }]);

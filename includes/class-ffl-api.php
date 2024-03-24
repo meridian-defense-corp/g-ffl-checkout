@@ -79,7 +79,9 @@ class G_Ffl_Api
         $this->load_dependencies();
         $this->set_locale();
         $this->define_admin_hooks();
-        $this->define_public_hooks();
+
+        // at wp to allow woocommerce to initialize
+        add_action( 'wp', array( $this, 'define_public_hooks' ) );
 
     }
 
@@ -146,11 +148,8 @@ class G_Ffl_Api
      */
     private function set_locale()
     {
-
         $plugin_i18n = new G_ffl_Api_i18n();
-
-        $this->loader->add_action('plugins_loaded', $plugin_i18n, 'load_plugin_textdomain');
-
+        add_action( 'plugins_loaded', array( $plugin_i18n, 'load_plugin_textdomain' ) );
     }
 
     /**
@@ -162,13 +161,10 @@ class G_Ffl_Api
      */
     private function define_admin_hooks()
     {
-
         $plugin_admin = new G_ffl_Api_Admin($this->get_plugin_name(), $this->get_version());
-
-        $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
-        $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
-
-        $this->loader->add_action('admin_menu', $plugin_admin, 'ffl_load_menu');
+        add_action( 'admin_enqueue_scripts', array( $plugin_admin, 'enqueue_styles') );
+        add_action( 'admin_enqueue_scripts', array( $plugin_admin, 'enqueue_scripts') );
+        add_action( 'admin_menu', array( $plugin_admin, 'ffl_load_menu' ) );
     }
 
     /**
@@ -176,20 +172,23 @@ class G_Ffl_Api
      * of the plugin.
      *
      * @since    1.0.0
-     * @access   private
+     * @access   public
      */
-    private function define_public_hooks()
+    public function define_public_hooks()
     {
-
-        $plugin_public = new G_ffl_Api_Public($this->get_plugin_name(), $this->get_version());
-
-        $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
-        $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
-
-        $this->loader->add_action('woocommerce_before_checkout_form', $plugin_public, 'ffl_woo_checkout', 10);
-        //$this->loader->add_action('woocommerce_before_checkout_billing_form', $plugin_public, 'ffl_woo_checkout', 11);
-
-
+        /**
+         * Add scripts on the public side, only if there's at least one product 
+         * that requires an FFL dealer proxy - or if on a customer account page
+         */
+        if ( is_account_page() || is_checkout() ) {
+            $plugin_public = new G_ffl_Api_Public($this->get_plugin_name(), $this->get_version());
+            if ( ! is_checkout() || order_requires_ffl_selector() ) {
+                // add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_styles' ) );
+                add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_scripts') );
+                add_action( 'woocommerce_before_checkout_form', array( $plugin_public, 'ffl_woo_checkout', ), 10 );
+           }
+            $plugin_public->ffl_picker_shortcode();
+       }
     }
 
 

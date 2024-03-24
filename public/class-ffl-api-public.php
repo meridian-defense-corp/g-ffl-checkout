@@ -57,51 +57,14 @@ class G_ffl_Api_Public
     }
 
     /**
-     * Register the stylesheets for the public-facing side of the site.
-     *
-     * @since    1.0.0
-     */
-    public function enqueue_styles()
-    {
-
-        /**
-         * This function is provided for demonstration purposes only.
-         *
-         * An instance of this class should be passed to the run() function
-         * defined in Ffl_Api_Loader as all of the hooks are defined
-         * in that particular class.
-         *
-         * The Ffl_Api_Loader will then create the relationship
-         * between the defined hooks and the functions defined in this
-         * class.
-         */
-
-//		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/ffl-api-public.css', array(), $this->version, 'all' );
-
-    }
-
-    /**
      * Register the JavaScript for the public-facing side of the site.
      *
      * @since    1.0.0
      */
     public function enqueue_scripts()
     {
-
-        /**
-         * This function is provided for demonstration purposes only.
-         *
-         * An instance of this class should be passed to the run() function
-         * defined in Ffl_Api_Loader as all of the hooks are defined
-         * in that particular class.
-         *
-         * The Ffl_Api_Loader will then create the relationship
-         * between the defined hooks and the functions defined in this
-         * class.
-         */
-
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/ffl-api-widget.js', array( 'jquery' ), $this->version, false );
-        wp_enqueue_script($this->plugin_name . '_init', plugin_dir_url(__FILE__) . 'js/ffl-api-public.js', array('jquery', $this->plugin_name), $this->version, false);
+        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/ffl-api-widget.js', array( 'jquery' ), rand(0, 99999), false );
+        wp_enqueue_script($this->plugin_name . '_init', plugin_dir_url(__FILE__) . 'js/ffl-api-public.js', array('jquery', $this->plugin_name), rand(0, 99999), false);
         wp_localize_script($this->plugin_name . '_init', 'ajax_object', array('ajaxurl' => admin_url('admin-ajax.php')));
     }
 
@@ -139,38 +102,55 @@ class G_ffl_Api_Public
             $fireArmCount = 0;
         }
         if ($fireArmCount > 0) {
-            add_action(get_option('ffl_init_map_location', 'woocommerce_checkout_order_review'), array($this, 'ffl_init_map'), 10);
+      //      add_action(get_option('ffl_init_map_location', 'woocommerce_checkout_order_review'), array($this, 'ffl_init_map'), 10);
         }else{
-            add_action('woocommerce_checkout_shipping', 'handle_no_ffl_items', 10);
-            function handle_no_ffl_items(){
-                $notes = '';
-                if (isset($_COOKIE["candr_license"])) {
-                    $notes = $_COOKIE['candr_license'];
-                }
-                echo '
-                    <script>
-                        jQuery("#candr_license").val("'.$notes.'");
-                        jQuery("#candr_license").prop("readonly", true);
-                        if (document.getElementById("ship-to-different-address-checkbox") != null){
-                            document.getElementById("ship-to-different-address-checkbox").checked = false;
-                        }
-                        document.getElementById("shipping_first_name").value = "";
-                        document.getElementById("shipping_last_name").value = "";
-                        document.getElementById("shipping_company").value = "US";
-                        document.getElementById("shipping_address_1").value = "";
-                        document.getElementById("shipping_address_2").value = "";
-                        document.getElementById("shipping_city").value = "";
-                        document.getElementById("shipping_postcode").value = "";
-                        document.getElementById("shipping_state").value = "";
-                    </script>';
-            }
+            add_action('woocommerce_checkout_shipping', array( $this, 'handle_no_ffl_items' ), 10);
         }
     }
 
+    function handle_no_ffl_items(){
+        $notes = '';
+        if (isset($_COOKIE["candr_license"])) {
+            $notes = $_COOKIE['candr_license'];
+        }
+        echo '
+            <script>
+                jQuery("#candr_license").val("'.$notes.'");
+                jQuery("#candr_license").prop("readonly", true);
+                // if (document.getElementById("ship-to-different-address-checkbox") != null){
+                //     document.getElementById("ship-to-different-address-checkbox").checked = false;
+                // }
+                // document.getElementById("shipping_first_name").value = "";
+                // document.getElementById("shipping_last_name").value = "";
+                // document.getElementById("shipping_company").value = "US";
+                // document.getElementById("shipping_address_1").value = "";
+                // document.getElementById("shipping_address_2").value = "";
+                // document.getElementById("shipping_city").value = "";
+                // document.getElementById("shipping_postcode").value = "";
+                // document.getElementById("shipping_state").value = "";
+            </script>';
+    }
+
+    function ffl_picker_shortcode()
+    {
+        add_shortcode( 'checkout-ffl-selector', array( $this, 'ffl_init_map' ) );
+    }
+
+    /**
+     * Shortcode callback
+     * 
+     * Inject data consumed by ffl-api-widget.js
+     */
     function ffl_init_map()
     {
+        // currently only two areas the ffl picker must be displayed: checkout and account pages
+        // @todo may need to add to admin area
+        if ( ! is_account_page() && ( is_checkout() && ! order_requires_ffl_selector() ) ) {
+            return '';
+        }
+        $cartAllFirearms = all_items_are_firearms();
         $aKey = get_option('ffl_api_key_option');
-        $wMes = get_option('ffl_checkout_message') != '' ? get_option('ffl_checkout_message') : '<b>Federal law dictates that your online firearms purchase must be delivered to a federally licensed firearms dealer (FFL) before you can take possession.</b> This process is called a Transfer. Enter your zip code, radius, and FFL name (optional), then click the Find button to get a list of FFL dealers in your area. Select the FFL dealer you want the firearm shipped to. <b><u>Before Checking Out, Contact your selected FFL dealer to confirm they are currently accepting transfers</u></b>. You can also confirm transfer costs.';
+        $wMes = '';
         $hok = get_option('ffl_init_map_location');
         $fflLocalPickup = get_option('ffl_local_pickup');
         $candrOverride = get_option('ffl_candr_override');
@@ -179,10 +159,11 @@ class G_ffl_Api_Public
         if(isset($_COOKIE['g_ffl_checkout_favorite_ffl'])) {
             $customerFavoriteFFL = $_COOKIE['g_ffl_checkout_favorite_ffl'];
         }
-        
+        ob_start();
         echo '<div id="ffl_container"></div>';
         echo '
                 <script type="text/javascript">
+                    const fflAllFirearms = ' . absint($cartAllFirearms) . ';
                     let g_ffl_plugin_directory = "' . esc_attr(plugin_dir_url(__FILE__)) . '";    
                     let aKey = "' . esc_attr($aKey) . '";
                     let wMes = `' . wp_kses_post($wMes) . '`;
@@ -199,6 +180,7 @@ class G_ffl_Api_Public
                         });
                     }
                 </script>';
+        return ob_get_clean();
     }
 }
 

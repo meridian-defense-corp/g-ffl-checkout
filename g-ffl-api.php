@@ -59,18 +59,7 @@ function activate_g_ffl_api()
     G_ffl_Api_Activator::activate();
 }
 
-/**
- * The code that runs during plugin deactivation.
- * This action is documented in includes/class-ffl-api-deactivator.php
- */
-function deactivate_g_ffl_api()
-{
-    require_once plugin_dir_path(__FILE__) . 'includes/class-ffl-api-deactivator.php';
-    G_ffl_Api_Deactivator::deactivate();
-}
-
 register_activation_hook(__FILE__, 'activate_g_ffl_api');
-register_deactivation_hook(__FILE__, 'deactivate_g_ffl_api');
 
 /**
  * The core plugin class that is used to define internationalization,
@@ -78,6 +67,11 @@ register_deactivation_hook(__FILE__, 'deactivate_g_ffl_api');
  */
 require plugin_dir_path(__FILE__) . 'includes/class-ffl-api.php';
 require plugin_dir_path(__FILE__) . 'includes/ffl_ordering.php';
+
+/**
+ * Customer account area
+ */
+require plugin_dir_path(__FILE__) . 'includes/ffl_wc_account.php';
 
 add_action( 'before_woocommerce_init', function() {
 	if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
